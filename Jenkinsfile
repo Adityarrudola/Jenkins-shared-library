@@ -87,7 +87,7 @@ pipeline {
                     --ports 80 \
                     --os-type Linux \
                     --cpu 1 \
-                    --memory 1.5
+                    --memory 1.5 \
                     --restart-policy Always
                     """
                 }
