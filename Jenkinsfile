@@ -86,6 +86,8 @@ pipeline {
                     --dns-name-label react-app-${BUILD_NUMBER} \
                     --ports 80 \
                     --os-type Linux \
+                    --cpu 1 \
+                    --memory 1.5
                     --restart-policy Always
                     """
                 }
