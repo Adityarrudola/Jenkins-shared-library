@@ -23,6 +23,17 @@ pipeline {
             }
         }
 
+        stage('Build Image') {
+            steps {
+                sh """
+                docker build --no-cache \
+                  -t ${IMAGE_NAME} \
+                  -t ${DOCKER_REPO}:latest \
+                  .
+                """
+            }
+        }
+
         stage('Docker Login') {
             steps {
                 withCredentials([usernamePassword(
@@ -37,17 +48,6 @@ pipeline {
             }
         }
 
-        stage('Build Image') {
-            steps {
-                sh """
-                docker build --no-cache \
-                  -t ${IMAGE_NAME} \
-                  -t ${DOCKER_REPO}:latest \
-                  .
-                """
-            }
-        }
-
         stage('Push Image') {
             steps {
                 sh """
@@ -56,6 +56,7 @@ pipeline {
                 """
             }
         }
+
         stage('Deploy to Azure Container Instances') {
             steps {
                 withCredentials([azureServicePrincipal(
@@ -93,7 +94,38 @@ pipeline {
                 }
             }
         }
-        
-        
     }
+    
+    post {
+        success {
+            emailext(
+                subject: "SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+                    <h2 style="color:green;">Build SUCCESS</h2>
+                    <p><b>Job:</b> ${env.JOB_NAME}</p>
+                    <p><b>Build Number:</b> ${env.BUILD_NUMBER}</p>
+                    <p><b>Docker Image:</b> ${IMAGE_NAME}</p>
+                    <p><b>URL:</b> ${env.BUILD_URL}</p>
+                """,
+                mimeType: 'text/html',
+                to: 'your-email@gmail.com'
+            )
+        }
+
+        failure {
+            emailext(
+                subject: "FAILURE: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+                    <h2 style="color:red;">Build FAILED</h2>
+                    <p><b>Job:</b> ${env.JOB_NAME}</p>
+                    <p><b>Build Number:</b> ${env.BUILD_NUMBER}</p>
+                    <p><b>Check Console:</b> ${env.BUILD_URL}</p>
+                """,
+                mimeType: 'text/html',
+                to: 'aditya.rudola@quokkalabs.com'
+            )
+        }
+
+    }
+    
 }
